@@ -1,4 +1,4 @@
-# Prerequisites
+/# Prerequisite 
 *.d
 
 # Object files
@@ -50,3 +50,8 @@ modules.order
 Module.symvers
 Mkfile.old
 dkms.conf
+
+freertos_demo/*
+
+Debug/*
+*.mk
