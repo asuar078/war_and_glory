@@ -14,7 +14,7 @@
 
 #include <Arduino.h>
 #include <Arduino_FreeRTOS.h>
-#include <semphr.h> 
+#include <semphr.h>
 #include <SPI.h>
 #include "Adafruit_BLE.h"
 #include "Adafruit_BluefruitLE_SPI.h"
@@ -22,13 +22,16 @@
 
 #include "BluefruitConfig.h"
 #include "ble_task.h"
+#include "motor_task.h"
 
-ble_task ble_t; 
+ble_task ble_t;
+motor_task motor_t;
 
 void setup(void)
 {
   Serial.begin(115200);
   ble_t.create_task();
+  motor_t.create_task();
 }
 
 

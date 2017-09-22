@@ -13,7 +13,7 @@
 #include "priorities.h"
 /* #include "FreeRTOS.h" */
 /* #include "task.h" */
-/* #include "queue.h" */
+ #include "queue.h"
 /* #include "semphr.h" */
 #include "motor_task.h"
 
@@ -35,10 +35,13 @@
 #define RED_LED A0
 #define GREEN_LED A1
 
+extern QueueHandle_t motor_queue;
+
 Adafruit_BluefruitLE_SPI ble(BLUEFRUIT_SPI_CS, BLUEFRUIT_SPI_IRQ, BLUEFRUIT_SPI_RST);
 
 int32_t charid_string;
 int32_t charid_number;
+BUTTON button_pressed;
 
 // A small helper
 void error(const __FlashStringHelper*err) {
@@ -65,6 +68,27 @@ void BleUartRX(char data[], uint16_t len)
   Serial.print( F("[BLE UART RX]" ) );
   Serial.write(data, len);
   Serial.println();
+
+  // Buttons
+  if (data[1] == 'B') {
+    button_pressed.butt_num = data[2] - '0';
+    button_pressed.pressed = data[3] - '0';
+    Serial.print ("Button "); Serial.print(button_pressed.butt_num);
+    if (button_pressed.pressed) {
+      Serial.println(" pressed");
+    } else {
+      Serial.println(" released");
+    }
+
+    if(xQueueSend(motor_queue, &button_pressed, portMAX_DELAY) !=
+       pdPASS)
+    {
+        // Error. The queue should never be full. If so print the
+        // error message on UART and wait for ever.
+        Serial.println("\nQueue full. This should never happen.\n");
+    }
+  }
+
 }
 
 void BleGattRX(int32_t chars_id, uint8_t data[], uint16_t len)
@@ -86,7 +110,7 @@ void BleGattRX(int32_t chars_id, uint8_t data[], uint16_t len)
 }
 
 ble_task::ble_task(void){
-  
+
 }
 
 static void task_loop( void *pvParameters __attribute__((unused)) ) {
@@ -148,9 +172,11 @@ static void task_loop( void *pvParameters __attribute__((unused)) ) {
 
  while(1){
 
+   Serial.println("ble task");
 //     xSemaphoreTake(spiMutex, portMAX_DELAY); // Suspend this task indefinitely until the mutex is available
 //     xSemaphoreGive(spiMutex);
   ble.update(200);
+  vTaskDelay(100);
 
  }
 }
