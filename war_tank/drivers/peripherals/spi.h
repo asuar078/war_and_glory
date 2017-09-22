@@ -27,6 +27,10 @@ typedef struct spi{
 	uint32_t mode;
 	uint32_t bit_rate;
 	uint32_t data_width;
+
+	uint32_t cs_peripheral;
+    uint32_t cs_port;
+    uint8_t cs_pin;
 } SPI;
 
 void spi_init(SPI *spi);
@@ -36,6 +40,10 @@ void spi_init(SPI *spi);
  * Buffer allows up to eight 16-bit values to be stored
  * independly.
  */
-void spi_transfer(uint32_t ssi_base, uint32_t *data_tx, uint32_t *data_rx, uint32_t num_of_packets);
+void spi_transfer(SPI *spi, uint32_t *data_tx, uint32_t *data_rx, uint32_t num_of_packets);
+
+void spi_cs_enable(SPI *spi);
+
+void spi_cs_disable(SPI *spi);
 
 #endif /* DRIVERS_PERIPHERALS_SPI_H_ */

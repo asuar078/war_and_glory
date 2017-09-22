@@ -35,6 +35,7 @@
 #include "task/led_task.h"
 #include "task/switch_task.h"
 #include "task/motor_task.h"
+#include "task/ble_task.h"
 #include "FreeRTOS.h"
 #include "task.h"
 #include "queue.h"
@@ -171,6 +172,13 @@ main(void)
     if(motor_task_init() != 0)
     {
         UARTprintf("Motor task failed to start");
+        while(1) {}
+    }
+
+    // Create the motor task.
+    if(ble_task_init() != 0)
+    {
+        UARTprintf("BLE task failed to start");
         while(1) {}
     }
 

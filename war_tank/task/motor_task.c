@@ -23,7 +23,7 @@
 
 //*****************************************************************************
 //
-// The stack size for the LED toggle task.
+// The stack size for the motor task.
 //
 //*****************************************************************************
 #define MOTORTASKSTACKSIZE        128         // Stack size in words
@@ -46,7 +46,7 @@ static uint32_t pwm_init(void){
     // Enable the peripherals used by this program.
     SysCtlPeripheralEnable(SYSCTL_PERIPH_GPIOF);
     SysCtlPeripheralEnable(SYSCTL_PERIPH_PWM1);  //The Tiva Launchpad has two modules (0 and 1). Module 1 covers the LED pins
-    ulPeriod = SysCtlClockGet() / 500; //PWM frequency 200HZ
+    ulPeriod = SysCtlClockGet() / 500; //PWM frequency 500HZ
 
     //Configure PF1,PF2,PF3 Pins as PWM
 //    GPIOPinConfigure(GPIO_PF1_M1PWM5);
@@ -119,17 +119,12 @@ static void motor_task(void *pvParameters)
 
 //*****************************************************************************
 //
-// Initializes the LED task.
+// Initializes the motor task.
 //
 //*****************************************************************************
 uint32_t motor_task_init(void)
 {
-
-    // Print the current loggling LED and frequency.
-    //UARTprintf("\nLed %d is blinking. [R, G, B]\n", g_ui8ColorsIndx);
-    //UARTprintf("Led blinking frequency is %d ms.\n", (LED_TOGGLE_DELAY * 2));
-
-    // Create the LED task.
+    // Create the task.
     if(xTaskCreate(motor_task, (const portCHAR *)"Motor", MOTORTASKSTACKSIZE, NULL,
                    tskIDLE_PRIORITY + PRIORITY_MOTOR_TASK, NULL) != pdTRUE)
     {

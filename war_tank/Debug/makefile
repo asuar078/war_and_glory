@@ -17,6 +17,7 @@ ORDERED_OBJS += \
 "./drivers/peripherals/i2c.obj" \
 "./drivers/peripherals/spi.obj" \
 "./drivers/peripherals/timer.obj" \
+"./task/ble_task.obj" \
 "./task/led_task.obj" \
 "./task/motor_task.obj" \
 "./task/switch_task.obj" \
@@ -188,8 +189,8 @@ war_and_glory.bin: $(EXE_OUTPUTS)
 # Other Targets
 clean:
 	-$(RM) $(BIN_OUTPUTS__QUOTED)$(EXE_OUTPUTS__QUOTED)
-	-$(RM) "main.obj" "startup_ccs.obj" "drivers/buttons.obj" "drivers/rgb.obj" "drivers/devices/L293D.obj" "drivers/devices/PCA9685.obj" "drivers/peripherals/i2c.obj" "drivers/peripherals/spi.obj" "drivers/peripherals/timer.obj" "task/led_task.obj" "task/motor_task.obj" "task/switch_task.obj" "third_party/FreeRTOS/Source/list.obj" "third_party/FreeRTOS/Source/queue.obj" "third_party/FreeRTOS/Source/tasks.obj" "third_party/FreeRTOS/Source/portable/CCS/ARM_CM4F/port.obj" "third_party/FreeRTOS/Source/portable/CCS/ARM_CM4F/portasm.obj" "third_party/FreeRTOS/Source/portable/MemMang/heap_2.obj" "utils/uartstdio.obj" "utils/ustdlib.obj" 
-	-$(RM) "main.d" "startup_ccs.d" "drivers/buttons.d" "drivers/rgb.d" "drivers/devices/L293D.d" "drivers/devices/PCA9685.d" "drivers/peripherals/i2c.d" "drivers/peripherals/spi.d" "drivers/peripherals/timer.d" "task/led_task.d" "task/motor_task.d" "task/switch_task.d" "third_party/FreeRTOS/Source/list.d" "third_party/FreeRTOS/Source/queue.d" "third_party/FreeRTOS/Source/tasks.d" "third_party/FreeRTOS/Source/portable/CCS/ARM_CM4F/port.d" "third_party/FreeRTOS/Source/portable/MemMang/heap_2.d" "utils/uartstdio.d" "utils/ustdlib.d" 
+	-$(RM) "main.obj" "startup_ccs.obj" "drivers/buttons.obj" "drivers/rgb.obj" "drivers/devices/L293D.obj" "drivers/devices/PCA9685.obj" "drivers/peripherals/i2c.obj" "drivers/peripherals/spi.obj" "drivers/peripherals/timer.obj" "task/ble_task.obj" "task/led_task.obj" "task/motor_task.obj" "task/switch_task.obj" "third_party/FreeRTOS/Source/list.obj" "third_party/FreeRTOS/Source/queue.obj" "third_party/FreeRTOS/Source/tasks.obj" "third_party/FreeRTOS/Source/portable/CCS/ARM_CM4F/port.obj" "third_party/FreeRTOS/Source/portable/CCS/ARM_CM4F/portasm.obj" "third_party/FreeRTOS/Source/portable/MemMang/heap_2.obj" "utils/uartstdio.obj" "utils/ustdlib.obj" 
+	-$(RM) "main.d" "startup_ccs.d" "drivers/buttons.d" "drivers/rgb.d" "drivers/devices/L293D.d" "drivers/devices/PCA9685.d" "drivers/peripherals/i2c.d" "drivers/peripherals/spi.d" "drivers/peripherals/timer.d" "task/ble_task.d" "task/led_task.d" "task/motor_task.d" "task/switch_task.d" "third_party/FreeRTOS/Source/list.d" "third_party/FreeRTOS/Source/queue.d" "third_party/FreeRTOS/Source/tasks.d" "third_party/FreeRTOS/Source/portable/CCS/ARM_CM4F/port.d" "third_party/FreeRTOS/Source/portable/MemMang/heap_2.d" "utils/uartstdio.d" "utils/ustdlib.d" 
 	-$(RM) "third_party/FreeRTOS/Source/portable/CCS/ARM_CM4F/portasm.d" 
 	-@echo 'Finished clean'
 	-@echo ' '
