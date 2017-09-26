@@ -26,13 +26,13 @@
 
 // Motor 1 pins
 const int speedPin_1 = 3;    // that is the pin that we use to control the motor's speed
-const int forwardPin_1 = 2; // this is the pin that we use to tell the motor to go forward
-const int reversePin_1 = 5; // this is the pin that we use to tell the motor to go reverse
+const int forwardPin_1 = 5; // this is the pin that we use to tell the motor to go forward
+const int reversePin_1 = 2; // this is the pin that we use to tell the motor to go reverse
 
 // Motor 2 pins
 const int speedPin_2 = 6;    // that is the pin that we use to control the motor's speed
-const int forwardPin_2 = 10; // this is the pin that we use to tell the motor to go forward
-const int reversePin_2 = 9; // this is the pin that we use to tell the motor to go reverse
+const int forwardPin_2 = 9; // this is the pin that we use to tell the motor to go forward
+const int reversePin_2 = 10; // this is the pin that we use to tell the motor to go reverse
 
 L293D motor1(speedPin_1, forwardPin_1, reversePin_1);
 L293D motor2(speedPin_2, forwardPin_2, reversePin_2);
