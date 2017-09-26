@@ -1,9 +1,9 @@
 /*
- * ble_task.c
- *
- *  Created on: Sep 18, 2017
- *      Author: bigbywolf
- */
+* ble_task.c
+*
+*  Created on: Sep 18, 2017
+*      Author: bigbywolf
+*/
 #include <Arduino.h>
 #include "ble_task.h"
 #include <stdbool.h>
@@ -13,8 +13,8 @@
 #include "priorities.h"
 /* #include "FreeRTOS.h" */
 /* #include "task.h" */
- #include "queue.h"
-/* #include "semphr.h" */
+#include "queue.h"
+#include "semphr.h"
 #include "motor_task.h"
 
 
@@ -27,7 +27,7 @@
 //*****************************************************************************
 // The stack size for the BLE toggle task.
 //*****************************************************************************
-#define BLETASKSTACKSIZE        128         // Stack size in words
+#define BLETASKSTACKSIZE        256         // Stack size in words
 
 #define FACTORYRESET_ENABLE        1
 #define MINIMUM_FIRMWARE_VERSION   "0.7.0"
@@ -36,6 +36,7 @@
 #define GREEN_LED A1
 
 extern QueueHandle_t motor_queue;
+extern SemaphoreHandle_t serial_semaphore;
 
 Adafruit_BluefruitLE_SPI ble(BLUEFRUIT_SPI_CS, BLUEFRUIT_SPI_IRQ, BLUEFRUIT_SPI_RST);
 
@@ -51,41 +52,54 @@ void error(const __FlashStringHelper*err) {
 
 void connected(void)
 {
+  xSemaphoreTake( serial_semaphore, ( TickType_t ) 5 );
   Serial.println( F("Connected") );
+  xSemaphoreGive( serial_semaphore );
+
   digitalWrite(RED_LED, LOW);
   digitalWrite(GREEN_LED, HIGH);
 }
 
 void disconnected(void)
 {
+  xSemaphoreTake( serial_semaphore, ( TickType_t ) 5 );
   Serial.println( F("Disconnected") );
+  xSemaphoreGive( serial_semaphore );
+
   digitalWrite(RED_LED, HIGH);
   digitalWrite(GREEN_LED, LOW);
 }
 
 void BleUartRX(char data[], uint16_t len)
 {
-  Serial.print( F("[BLE UART RX]" ) );
-  Serial.write(data, len);
-  Serial.println();
 
+  // Serial.print( F("[BLE UART RX]" ) );
+  // Serial.write(data, len);
+  // Serial.println();
   // Buttons
   if (data[1] == 'B') {
+
     button_pressed.butt_num = data[2] - '0';
     button_pressed.pressed = data[3] - '0';
+
+    xSemaphoreTake( serial_semaphore, ( TickType_t ) 5 );
     Serial.print ("Button "); Serial.print(button_pressed.butt_num);
     if (button_pressed.pressed) {
       Serial.println(" pressed");
     } else {
       Serial.println(" released");
     }
+    xSemaphoreGive( serial_semaphore );
+
 
     if(xQueueSend(motor_queue, &button_pressed, portMAX_DELAY) !=
-       pdPASS)
+    pdPASS)
     {
-        // Error. The queue should never be full. If so print the
-        // error message on UART and wait for ever.
-        Serial.println("\nQueue full. This should never happen.\n");
+      // Error. The queue should never be full. If so print the
+      // error message on UART and wait for ever.
+      xSemaphoreTake( serial_semaphore, ( TickType_t ) 5 );
+      Serial.println("\nQueue full. This should never happen.\n");
+      xSemaphoreGive( serial_semaphore );
     }
   }
 
@@ -93,6 +107,9 @@ void BleUartRX(char data[], uint16_t len)
 
 void BleGattRX(int32_t chars_id, uint8_t data[], uint16_t len)
 {
+
+  xSemaphoreTake( serial_semaphore, ( TickType_t ) 5 );
+
   Serial.print( F("[BLE GATT RX] (" ) );
   Serial.print(chars_id);
   Serial.print(") ");
@@ -107,6 +124,7 @@ void BleGattRX(int32_t chars_id, uint8_t data[], uint16_t len)
     memcpy(&val, data, len);
     Serial.println(val);
   }
+  xSemaphoreGive( serial_semaphore );
 }
 
 ble_task::ble_task(void){
@@ -119,6 +137,8 @@ static void task_loop( void *pvParameters __attribute__((unused)) ) {
 
   digitalWrite(RED_LED, HIGH);
   digitalWrite(GREEN_LED, LOW);
+
+  xSemaphoreTake( serial_semaphore, ( TickType_t ) 5 );
 
   Serial.println(F("BLE War Tank"));
   Serial.println(F("-------------------------------------"));
@@ -160,6 +180,8 @@ static void task_loop( void *pvParameters __attribute__((unused)) ) {
   /* Print Bluefruit information */
   ble.info();
 
+  xSemaphoreGive( serial_semaphore );
+
   /* Set callbacks */
   ble.setConnectCallback(connected);
   ble.setDisconnectCallback(disconnected);
@@ -170,26 +192,30 @@ static void task_loop( void *pvParameters __attribute__((unused)) ) {
   ble.setBleGattRxCallback(charid_string, BleGattRX);
   ble.setBleGattRxCallback(charid_number, BleGattRX);
 
- while(1){
+  while(1){
 
-   Serial.println("ble task");
-//     xSemaphoreTake(spiMutex, portMAX_DELAY); // Suspend this task indefinitely until the mutex is available
-//     xSemaphoreGive(spiMutex);
-  ble.update(200);
-  vTaskDelay(100);
+    // if ( xSemaphoreTake( serial_semaphore, ( TickType_t ) 5 ) == pdTRUE )
+    // {
+    //   Serial.println("ble task");
+    //   xSemaphoreGive( serial_semaphore ); // Now free or "Give" the Serial Port for others.
+    // }
 
- }
+    ble.update(200);
+    // vTaskDelay(200);
+    taskYIELD();
+
+  }
 }
 
 int ble_task::create_task(void)
 {
-    // Create task.
-    if(xTaskCreate(task_loop, (const portCHAR *)"BLE", BLETASKSTACKSIZE, NULL,
-                   tskIDLE_PRIORITY + PRIORITY_BLE_TASK, NULL) != pdTRUE)
-    {
-        return(1);
-    }
+  // Create task.
+  if(xTaskCreate(task_loop, (const portCHAR *)"BLE", BLETASKSTACKSIZE, NULL,
+  tskIDLE_PRIORITY + PRIORITY_BLE_TASK, NULL) != pdTRUE)
+  {
+    return(1);
+  }
 
-    // Success.
-    return(0);
+  // Success.
+  return(0);
 }

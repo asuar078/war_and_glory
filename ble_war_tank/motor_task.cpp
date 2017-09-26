@@ -31,13 +31,79 @@ const int reversePin_1 = 5; // this is the pin that we use to tell the motor to 
 
 // Motor 2 pins
 const int speedPin_2 = 6;    // that is the pin that we use to control the motor's speed
-const int forwardPin_2 = 9; // this is the pin that we use to tell the motor to go forward
-const int reversePin_2 = 10; // this is the pin that we use to tell the motor to go reverse
+const int forwardPin_2 = 10; // this is the pin that we use to tell the motor to go forward
+const int reversePin_2 = 9; // this is the pin that we use to tell the motor to go reverse
 
 L293D motor1(speedPin_1, forwardPin_1, reversePin_1);
 L293D motor2(speedPin_2, forwardPin_2, reversePin_2);
 
+int motor_direc_1 = 0;
+int motor_direc_2 = 0;
+
+float motor_speed_1 = 1;
+float motor_speed_2 = 1;
+
 QueueHandle_t motor_queue;
+extern SemaphoreHandle_t serial_semaphore;
+
+#define FORWARD 5
+#define BACK 6
+#define LEFT 7
+#define RIGHT 8
+
+int motor_control(BUTTON *button){
+
+  if(button->pressed == 0){
+      motor_direc_1 = 0;
+      motor_direc_2 = 0;
+
+      return 0;
+  }
+
+  switch (button->butt_num) {
+    case 1:
+      motor_speed_1 = 1;
+      motor_speed_2 = 1;
+      break;
+    case 2:
+      motor_speed_1 = 0.75;
+      motor_speed_2 = 0.75;
+      break;
+    case 3:
+      motor_speed_1 = 0.50;
+      motor_speed_2 = 0.50;
+      break;
+    case 4:
+      motor_speed_1 = 0.25;
+      motor_speed_2 = 0.25;
+      break;
+
+    case FORWARD:
+      Serial.println("forward");
+      motor_direc_1 = 1;
+      motor_direc_2 = 1;
+      break;
+    case BACK:
+      Serial.println("back");
+      motor_direc_1 = -1;
+      motor_direc_2 = -1;
+      break;
+    case LEFT:
+      Serial.println("left");
+      motor_direc_1 = -1;
+      motor_direc_2 = 1;
+      break;
+    case RIGHT:
+      Serial.println("right");
+      motor_direc_1 = 1;
+      motor_direc_2 = -1;
+      break;
+    default:
+      return 1;
+  }
+
+  return 0;
+}
 
 motor_task::motor_task(void){
 
@@ -51,20 +117,32 @@ void print_button(BUTTON *press){
 static void task_loop(void *pvParameters)
 {
 
-  BUTTON button_pressed;
-
+    BUTTON button_pressed;
     // Loop forever.
     while(1)
     {
 
-     Serial.println("motor task");
+      // if ( xSemaphoreTake( serial_semaphore, ( TickType_t ) 5 ) == pdTRUE )
+      // {
+      //   Serial.println("motor task");
+      //   xSemaphoreGive( serial_semaphore ); // Now free or "Give" the Serial Port for others.
+      // }
+
       // Read the next message, if available on queue.
       if(xQueueReceive(motor_queue, &button_pressed, 0) == pdPASS)
       {
-        print_button(&button_pressed);
+        if ( xSemaphoreTake( serial_semaphore, ( TickType_t ) 5 ) == pdTRUE )
+        {
+            motor_control(&button_pressed);
+           xSemaphoreGive( serial_semaphore ); // Now free or "Give" the Serial Port for others.
+        }
       }
 
-      vTaskDelay(1000);
+      motor1.set(motor_direc_1*motor_speed_1);
+      motor2.set(motor_direc_2*motor_speed_2);
+
+      taskYIELD();
+    // vTaskDelay(200);
 
     }
 }

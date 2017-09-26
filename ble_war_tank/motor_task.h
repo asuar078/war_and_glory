@@ -10,6 +10,9 @@ class motor_task {
 public:
   motor_task(void);
   int create_task(void);
+
+// private:
+//   int motor_control(BUTTON *button);
 };
 
 #endif // __MOTOR_TASK_H__
